@@ -107,7 +107,7 @@ type ProviderFieldKeys = keyof ProviderFields;
 
 type ProviderFields = {
   [Field in keyof ServerConfigs['providers'][SsoAuthProviders]['fields']]: boolean;
-} & Partial<{ tenant: boolean }>;
+} & Partial<{ tenant: boolean; issuer: boolean; authorization_url: boolean; token_url: boolean; userinfo_url: boolean }>;
 
 type ProviderFieldMetadata = {
   name: string;
@@ -119,27 +119,47 @@ const providerConfigFields = <ProviderFieldMetadata[]>[
   {
     name: t('configs.auth_providers.client_id'),
     key: 'client_id',
-    applicableProviders: ['google', 'github', 'microsoft'],
+    applicableProviders: ['google', 'github', 'microsoft', 'gitlab'],
   },
   {
     name: t('configs.auth_providers.client_secret'),
     key: 'client_secret',
-    applicableProviders: ['google', 'github', 'microsoft'],
+    applicableProviders: ['google', 'github', 'microsoft', 'gitlab'],
   },
   {
     name: t('configs.auth_providers.callback_url'),
     key: 'callback_url',
-    applicableProviders: ['google', 'github', 'microsoft'],
+    applicableProviders: ['google', 'github', 'microsoft', 'gitlab'],
   },
   {
     name: t('configs.auth_providers.scope'),
     key: 'scope',
-    applicableProviders: ['google', 'github', 'microsoft'],
+    applicableProviders: ['google', 'github', 'microsoft', 'gitlab'],
   },
   {
     name: t('configs.auth_providers.tenant'),
     key: 'tenant',
     applicableProviders: ['microsoft'],
+  },
+  {
+    name: 'Issuer',
+    key: 'issuer',
+    applicableProviders: ['gitlab'],
+  },
+  {
+    name: 'Authorization URL',
+    key: 'authorization_url',
+    applicableProviders: ['gitlab'],
+  },
+  {
+    name: 'Token URL',
+    key: 'token_url',
+    applicableProviders: ['gitlab'],
+  },
+  {
+    name: 'Userinfo URL',
+    key: 'userinfo_url',
+    applicableProviders: ['gitlab'],
   },
 ];
 
@@ -162,6 +182,16 @@ const maskState = reactive<Record<SsoAuthProviders, ProviderFields>>({
     callback_url: true,
     scope: true,
     tenant: true,
+  },
+  gitlab: {
+    client_id: true,
+    client_secret: true,
+    callback_url: true,
+    scope: true,
+    issuer: true,
+    authorization_url: true,
+    token_url: true,
+    userinfo_url: true,
   },
 });
 

@@ -12,7 +12,7 @@ export const hasInputValidationFailed = ref<InputValidationStatus>({
   smtpUrl: false,
 });
 
-export type SsoAuthProviders = 'google' | 'microsoft' | 'github';
+export type SsoAuthProviders = 'google' | 'microsoft' | 'github' | 'gitlab';
 
 export type ServerConfigs = {
   providers: {
@@ -45,6 +45,20 @@ export type ServerConfigs = {
         callback_url: string;
         scope: string;
         tenant: string;
+      };
+    };
+    gitlab: {
+      name: SsoAuthProviders;
+      enabled: boolean;
+      fields: {
+        client_id: string;
+        client_secret: string;
+        callback_url: string;
+        scope: string;
+        issuer: string;
+        authorization_url: string;
+        token_url: string;
+        userinfo_url: string;
       };
     };
   };
@@ -203,6 +217,41 @@ export const GITHUB_CONFIGS: Config[] = [
   },
 ];
 
+export const GITLAB_CONFIGS: Config[] = [
+  {
+    name: InfraConfigEnum.GitlabClientId,
+    key: 'client_id',
+  },
+  {
+    name: InfraConfigEnum.GitlabClientSecret,
+    key: 'client_secret',
+  },
+  {
+    name: InfraConfigEnum.GitlabCallbackUrl,
+    key: 'callback_url',
+  },
+  {
+    name: InfraConfigEnum.GitlabScope,
+    key: 'scope',
+  },
+  {
+    name: InfraConfigEnum.GitlabIssuer,
+    key: 'issuer',
+  },
+  {
+    name: InfraConfigEnum.GitlabAuthorizationUrl,
+    key: 'authorization_url',
+  },
+  {
+    name: InfraConfigEnum.GitlabTokenUrl,
+    key: 'token_url',
+  },
+  {
+    name: InfraConfigEnum.GitlabUserinfoUrl,
+    key: 'userinfo_url',
+  },
+];
+
 export const MAIL_CONFIGS: Config[] = [
   {
     name: InfraConfigEnum.MailerSmtpUrl,
@@ -358,6 +407,8 @@ export const ALL_CONFIGS = [
   GOOGLE_CONFIGS,
   MICROSOFT_CONFIGS,
   GITHUB_CONFIGS,
+  GITLAB_CONFIGS,
+  GITLAB_CONFIGS,
   MAIL_CONFIGS,
   CUSTOM_MAIL_CONFIGS,
   DATA_SHARING_CONFIGS,

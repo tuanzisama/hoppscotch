@@ -23,6 +23,7 @@ import {
   ConfigSection,
   ConfigTransform,
   GITHUB_CONFIGS,
+  GITLAB_CONFIGS,
   GOOGLE_CONFIGS,
   MAIL_CONFIGS,
   MICROSOFT_CONFIGS,
@@ -120,6 +121,20 @@ export function useConfigHandler(updatedConfigs?: ServerConfigs) {
             callback_url: getFieldValue(InfraConfigEnum.MicrosoftCallbackUrl),
             scope: getFieldValue(InfraConfigEnum.MicrosoftScope),
             tenant: getFieldValue(InfraConfigEnum.MicrosoftTenant),
+          },
+        },
+        gitlab: {
+          name: 'gitlab',
+          enabled: allowedAuthProviders.value.includes(AuthProvider.Gitlab),
+          fields: {
+            client_id: getFieldValue(InfraConfigEnum.GitlabClientId),
+            client_secret: getFieldValue(InfraConfigEnum.GitlabClientSecret),
+            callback_url: getFieldValue(InfraConfigEnum.GitlabCallbackUrl),
+            scope: getFieldValue(InfraConfigEnum.GitlabScope),
+            issuer: getFieldValue(InfraConfigEnum.GitlabIssuer),
+            authorization_url: getFieldValue(InfraConfigEnum.GitlabAuthorizationUrl),
+            token_url: getFieldValue(InfraConfigEnum.GitlabTokenUrl),
+            userinfo_url: getFieldValue(InfraConfigEnum.GitlabUserinfoUrl),
           },
         },
       },
@@ -415,6 +430,11 @@ export function useConfigHandler(updatedConfigs?: ServerConfigs) {
         fields: updatedConfigs?.providers.microsoft.fields,
       },
       {
+        config: GITLAB_CONFIGS,
+        enabled: updatedConfigs?.providers.gitlab.enabled,
+        fields: updatedConfigs?.providers.gitlab.fields,
+      },
+      {
         config: MAIL_CONFIGS,
         enabled: updatedConfigs?.mailConfigs.enabled,
         fields: mailConfigFields,
@@ -499,6 +519,12 @@ export function useConfigHandler(updatedConfigs?: ServerConfigs) {
       {
         provider: AuthProvider.Github,
         status: updatedConfigs?.providers.github.enabled
+          ? ServiceStatus.Enable
+          : ServiceStatus.Disable,
+      },
+      {
+        provider: AuthProvider.Gitlab,
+        status: updatedConfigs?.providers.gitlab.enabled
           ? ServiceStatus.Enable
           : ServiceStatus.Disable,
       },

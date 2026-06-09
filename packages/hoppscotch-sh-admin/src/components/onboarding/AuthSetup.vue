@@ -53,6 +53,11 @@
                   src="/assets/icons/auth/microsoft.svg"
                   class="relative inline-block h-6 w-6 rounded-full border-2 border-primary object-cover object-center hover:z-10 focus:z-10"
                 />
+                <img
+                  alt="user 4"
+                  src="/assets/icons/auth/gitlab.svg"
+                  class="relative inline-block h-6 w-6 rounded-full border-2 border-primary object-cover object-center hover:z-10 focus:z-10"
+                />
               </AuthProviderCard>
 
               <AuthProviderCard
@@ -196,6 +201,7 @@ const OAuthProviders: (OAuthProvider | 'OAUTH')[] = [
   'GOOGLE',
   'GITHUB',
   'MICROSOFT',
+  'GITLAB',
   'OAUTH',
 ];
 const isOAuthEnabled = ref(false);

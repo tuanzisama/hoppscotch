@@ -6,7 +6,7 @@ import { InfraConfigEnum } from '~/helpers/backend/graphql';
 import { getLocalConfig, setLocalConfig } from '~/helpers/localpersistence';
 import { makeReadableKey } from '~/helpers/utils/readableKey';
 
-export type OAuthProvider = 'GOOGLE' | 'GITHUB' | 'MICROSOFT';
+export type OAuthProvider = 'GOOGLE' | 'GITHUB' | 'MICROSOFT' | 'GITLAB';
 export type EnabledConfig = OAuthProvider | 'OAUTH' | 'MAILER' | 'EMAIL';
 
 // common OAuth keys used across providers
@@ -14,6 +14,9 @@ type OAuthKeys = 'CLIENT_ID' | 'CLIENT_SECRET' | 'CALLBACK_URL' | 'SCOPE';
 
 // Microsoft specific keys
 type MicrosoftKeys = OAuthKeys | 'TENANT';
+
+// GitLab specific keys (OIDC-based)
+type GitlabKeys = OAuthKeys | 'ISSUER' | 'AUTHORIZATION_URL' | 'TOKEN_URL' | 'USERINFO_URL';
 
 type OAuthConfig<Keys extends string, Prefix extends string> = {
   [K in Keys as `${Prefix}_${K}`]: string;
@@ -44,6 +47,7 @@ export type Configs = {
     GOOGLE: OAuthConfig<OAuthKeys, 'GOOGLE'>;
     GITHUB: OAuthConfig<OAuthKeys, 'GITHUB'>;
     MICROSOFT: OAuthConfig<MicrosoftKeys, 'MICROSOFT'>;
+    GITLAB: OAuthConfig<GitlabKeys, 'GITLAB'>;
   };
   mailerConfigs: {
     [K in `MAILER_${MailerConfigKeys}`]: string;
@@ -79,6 +83,16 @@ function mapOAuthProviders(
       MICROSOFT_CALLBACK_URL: '',
       MICROSOFT_SCOPE: configs.MICROSOFT_SCOPE ?? '',
       MICROSOFT_TENANT: configs.MICROSOFT_TENANT ?? '',
+    },
+    GITLAB: {
+      GITLAB_CLIENT_ID: configs.GITLAB_CLIENT_ID ?? '',
+      GITLAB_CLIENT_SECRET: configs.GITLAB_CLIENT_SECRET ?? '',
+      GITLAB_CALLBACK_URL: '',
+      GITLAB_SCOPE: configs.GITLAB_SCOPE ?? '',
+      GITLAB_ISSUER: configs.GITLAB_ISSUER ?? '',
+      GITLAB_AUTHORIZATION_URL: configs.GITLAB_AUTHORIZATION_URL ?? '',
+      GITLAB_TOKEN_URL: configs.GITLAB_TOKEN_URL ?? '',
+      GITLAB_USERINFO_URL: configs.GITLAB_USERINFO_URL ?? '',
     },
   };
 }
@@ -146,7 +160,7 @@ export function useOnboardingConfigHandler() {
   const toggleConfig = (key: EnabledConfig | 'OAUTH' | 'EMAIL') => {
     if (key === 'OAUTH') {
       enabledConfigs.value = enabledConfigs.value.filter(
-        (c) => !['GOOGLE', 'GITHUB', 'MICROSOFT'].includes(c),
+        (c) => !['GOOGLE', 'GITHUB', 'MICROSOFT', 'GITLAB'].includes(c),
       );
     }
 
@@ -188,6 +202,9 @@ export function useOnboardingConfigHandler() {
     }
     if (oAuth.MICROSOFT.MICROSOFT_CLIENT_ID) {
       oAuth.MICROSOFT.MICROSOFT_CALLBACK_URL = `${base}/auth/microsoft/callback`;
+    }
+    if (oAuth.GITLAB.GITLAB_CLIENT_ID) {
+      oAuth.GITLAB.GITLAB_CALLBACK_URL = `${base}/auth/gitlab/callback`;
     }
   };
 
@@ -347,6 +364,7 @@ export function useOnboardingConfigHandler() {
       ...currentConfigs.value.oAuthProviders.GOOGLE,
       ...currentConfigs.value.oAuthProviders.GITHUB,
       ...currentConfigs.value.oAuthProviders.MICROSOFT,
+      ...currentConfigs.value.oAuthProviders.GITLAB,
       ...currentConfigs.value.mailerConfigs,
     };
 
