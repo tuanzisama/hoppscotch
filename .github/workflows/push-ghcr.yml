@@ -29,9 +29,6 @@ jobs:
           - arch: linux/amd64
             cache: ghcr-release-amd64
             suffix: amd64
-          - arch: linux/arm64
-            cache: ghcr-release-arm64
-            suffix: arm64
         target:
           - name: aio
             image: aio
