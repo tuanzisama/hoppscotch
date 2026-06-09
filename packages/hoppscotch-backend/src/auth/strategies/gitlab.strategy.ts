@@ -62,9 +62,9 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
 
   /**
    * passport-openidconnect verify signature (with passReqToCallback).
-   * Uses arity=5 to match passport-openidconnect's dispatch:
-   *   (req, issuer, profile, context, done)
-   * where context = { idToken, accessToken, refreshToken, params }.
+   * @nestjs/passport pops the `done` callback automatically and converts
+   * return values / thrown errors into callback invocations — same as the
+   * other OAuth strategies in this project.
    */
   async validate(
     req: Request,
@@ -76,57 +76,49 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
       refreshToken: string;
       params: unknown;
     },
-    done: (err: unknown, user?: unknown) => void,
   ) {
-    try {
-      const {
-        accessToken = '',
-        refreshToken = '',
-      } = context ?? {};
+    const { accessToken = '', refreshToken = '' } = context ?? {};
 
-      const email = profile?.emails?.[0]?.value;
+    const email = profile?.emails?.[0]?.value;
 
-      if (!validateEmail(email))
-        throw new UnauthorizedException(AUTH_EMAIL_NOT_PROVIDED_BY_OAUTH);
+    if (!validateEmail(email))
+      throw new UnauthorizedException(AUTH_EMAIL_NOT_PROVIDED_BY_OAUTH);
 
-      const user = await this.usersService.findUserByEmail(email);
+    const user = await this.usersService.findUserByEmail(email);
 
-      if (O.isNone(user)) {
-        const createdUser = await this.usersService.createUserSSO(
-          accessToken,
-          refreshToken,
-          profile as any,
-        );
-        return done(null, createdUser);
-      }
-
-      if (!user.value.displayName || !user.value.photoURL) {
-        const updatedUser = await this.usersService.updateUserDetails(
-          user.value,
-          profile as any,
-        );
-        if (E.isLeft(updatedUser)) {
-          throw new UnauthorizedException(updatedUser.left);
-        }
-      }
-
-      const providerAccountExists =
-        await this.authService.checkIfProviderAccountExists(
-          user.value,
-          profile as any,
-        );
-
-      if (O.isNone(providerAccountExists))
-        await this.usersService.createProviderAccount(
-          user.value,
-          accessToken,
-          refreshToken,
-          profile as any,
-        );
-
-      return done(null, user.value);
-    } catch (err) {
-      return done(err);
+    if (O.isNone(user)) {
+      const createdUser = await this.usersService.createUserSSO(
+        accessToken,
+        refreshToken,
+        profile as any,
+      );
+      return createdUser;
     }
+
+    if (!user.value.displayName || !user.value.photoURL) {
+      const updatedUser = await this.usersService.updateUserDetails(
+        user.value,
+        profile as any,
+      );
+      if (E.isLeft(updatedUser)) {
+        throw new UnauthorizedException(updatedUser.left);
+      }
+    }
+
+    const providerAccountExists =
+      await this.authService.checkIfProviderAccountExists(
+        user.value,
+        profile as any,
+      );
+
+    if (O.isNone(providerAccountExists))
+      await this.usersService.createProviderAccount(
+        user.value,
+        accessToken,
+        refreshToken,
+        profile as any,
+      );
+
+    return user.value;
   }
 }
