@@ -35,6 +35,7 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
     private configService: ConfigService,
   ) {
     super({
+      name: 'gitlab',
       issuer: configService.get<string>('INFRA.GITLAB_ISSUER'),
       authorizationURL: configService.get<string>(
         'INFRA.GITLAB_AUTHORIZATION_URL',
@@ -60,24 +61,29 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
   }
 
   /**
-   * passport-openidconnect verify signature (with passReqToCallback):
-   *   (req, issuer, profile, idToken, accessToken, refreshToken, done)
-   *
-   * Profile is normalized by passport-openidconnect into the standard
-   * Profile shape (emails/displayName/photos), so the existing
-   * createUserSSO / createProviderAccount helpers can consume it the same
-   * way they do for Google/Microsoft.
+   * passport-openidconnect verify signature (with passReqToCallback).
+   * Uses arity=5 to match passport-openidconnect's dispatch:
+   *   (req, issuer, profile, context, done)
+   * where context = { idToken, accessToken, refreshToken, params }.
    */
   async validate(
     req: Request,
     issuer: string,
     profile: OIDCProfile,
-    idToken: string,
-    accessToken: string,
-    refreshToken: string,
+    context: {
+      idToken: string;
+      accessToken: string;
+      refreshToken: string;
+      params: unknown;
+    },
     done: (err: unknown, user?: unknown) => void,
   ) {
     try {
+      const {
+        accessToken = '',
+        refreshToken = '',
+      } = context ?? {};
+
       const email = profile?.emails?.[0]?.value;
 
       if (!validateEmail(email))
