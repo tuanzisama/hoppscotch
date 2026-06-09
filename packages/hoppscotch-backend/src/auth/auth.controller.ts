@@ -24,6 +24,7 @@ import { isValidLocalhostRedirectUri } from './redirect-uri.validator';
 import { GoogleSSOGuard } from './guards/google-sso.guard';
 import { GithubSSOGuard } from './guards/github-sso.guard';
 import { MicrosoftSSOGuard } from './guards/microsoft-sso.guard';
+import { GitlabSSOGuard } from './guards/gitlab-sso.guard';
 import { ThrottlerBehindProxyGuard } from 'src/guards/throttler-behind-proxy.guard';
 import { SkipThrottle } from '@nestjs/throttler';
 import { AUTH_PROVIDER_NOT_SPECIFIED } from 'src/errors';
@@ -169,6 +170,33 @@ export class AuthController {
   @UseGuards(MicrosoftSSOGuard)
   @UseInterceptors(UserLastLoginInterceptor)
   async microsoftAuthRedirect(@Request() req, @Res() res) {
+    const authTokens = await this.authService.generateAuthTokens(req.user.uid);
+    if (E.isLeft(authTokens)) throwHTTPErr(authTokens.left);
+    authCookieHandler(
+      res,
+      authTokens.right,
+      true,
+      req.authInfo.state.redirect_uri,
+      this.configService,
+    );
+  }
+
+  /**
+   ** Route to initiate SSO auth via GitLab
+   */
+  @Get('gitlab')
+  @UseGuards(GitlabSSOGuard)
+  async gitlabAuth(@Request() req) {}
+
+  /**
+   ** Callback URL for GitLab SSO
+   * @see https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow#how-it-works
+   */
+  @Get('gitlab/callback')
+  @SkipThrottle()
+  @UseGuards(GitlabSSOGuard)
+  @UseInterceptors(UserLastLoginInterceptor)
+  async gitlabAuthRedirect(@Request() req, @Res() res) {
     const authTokens = await this.authService.generateAuthTokens(req.user.uid);
     if (E.isLeft(authTokens)) throwHTTPErr(authTokens.left);
     authCookieHandler(
