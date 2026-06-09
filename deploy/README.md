@@ -18,7 +18,7 @@ cp .env.example .env
 docker compose up -d
 
 # 4. 打开 Admin Dashboard 完成初始化
-# http://localhost:3100
+# http://localhost:31080
 ```
 
 ### 方式 B：使用 GHCR 预构建镜像
@@ -40,7 +40,7 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
 docker compose -f docker-compose.ghcr.yml up -d
 
 # 6. 打开 Admin Dashboard
-# http://localhost:3100
+# http://localhost:31080
 ```
 
 ## 文件说明
@@ -55,16 +55,16 @@ docker compose -f docker-compose.ghcr.yml up -d
 
 | 服务 | 端口 |
 |------|------|
-| Hoppscotch App | 3000 |
-| Admin Dashboard | 3100 |
-| Backend API | 3170 |
-| WebSocket / Desktop | 3200 |
+| Hoppscotch App | 30080 |
+| Admin Dashboard | 31080 |
+| Backend API | 31780 |
+| WebSocket / Desktop | 32080 |
 
 ## 配置 GitLab SSO
 
 服务启动后，通过 Admin Dashboard 完成配置：
 
-1. 打开 `http://localhost:3100`
+1. 打开 `http://localhost:31080`
 2. 完成 Onboarding 或进入 **Settings → Auth Providers**
 3. 启用 **GitLab**，填写 OAuth 应用凭据和 OIDC 端点
 4. 保存后即可在登录页看到 "Continue with GitLab" 按钮
