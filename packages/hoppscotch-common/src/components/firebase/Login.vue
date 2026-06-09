@@ -157,6 +157,7 @@ import IconEmail from "~icons/auth/email"
 import IconGithub from "~icons/auth/github"
 import IconGoogle from "~icons/auth/google"
 import IconMicrosoft from "~icons/auth/microsoft"
+import IconGitlab from "~icons/auth/gitlab"
 import IconArrowLeft from "~icons/lucide/arrow-left"
 import IconFileText from "~icons/lucide/file-text"
 
@@ -185,6 +186,7 @@ const isLoadingAllowedAuthProviders = ref(true)
 const signingInWithGoogle = ref(false)
 const signingInWithGitHub = ref(false)
 const signingInWithMicrosoft = ref(false)
+const signingInWithGitlab = ref(false)
 const signingInWithEmail = ref(false)
 const mode = ref("sign-in")
 
@@ -337,6 +339,19 @@ const signInWithMicrosoft = async () => {
   signingInWithMicrosoft.value = false
 }
 
+const signInWithGitlab = async () => {
+  signingInWithGitlab.value = true
+
+  try {
+    await platform.auth.signInUserWithGitlab()
+  } catch (e) {
+    console.error(e)
+    toast.error(`${t("error.something_went_wrong")}`)
+  }
+
+  signingInWithGitlab.value = false
+}
+
 const signInWithEmail = async () => {
   signingInWithEmail.value = true
 
@@ -385,6 +400,13 @@ const authProvidersAvailable: AuthProviderItem[] = [
     label: t("auth.continue_with_microsoft"),
     action: signInWithMicrosoft,
     isLoading: signingInWithMicrosoft,
+  },
+  {
+    id: "GITLAB",
+    icon: IconGitlab,
+    label: t("auth.continue_with_gitlab"),
+    action: signInWithGitlab,
+    isLoading: signingInWithGitlab,
   },
   {
     id: "EMAIL",
