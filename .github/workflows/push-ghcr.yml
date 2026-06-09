@@ -1,0 +1,153 @@
+name: "Build & Push to GHCR"
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (defaults to git ref name)"
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  # Change this to your GitHub org/username
+  IMAGE_PREFIX: ${{ github.repository_owner }}/hoppscotch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - arch: linux/amd64
+            cache: ghcr-release-amd64
+            suffix: amd64
+          - arch: linux/arm64
+            cache: ghcr-release-arm64
+            suffix: arm64
+        target:
+          - name: aio
+            image: aio
+          - name: backend
+            image: backend
+          - name: app
+            image: app
+          - name: sh_admin
+            image: sh-admin
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        run: cp .env.example .env
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.target.image }}
+          tags: |
+            type=raw,value=${{ inputs.tag || github.ref_name }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./prod.Dockerfile
+          target: ${{ matrix.target.name }}
+          cache-from: type=gha,timeout=200m,scope=${{ matrix.platform.cache }}-${{ matrix.target.name }}
+          cache-to: type=gha,mode=max,timeout=200m,scope=${{ matrix.platform.cache }}-${{ matrix.target.name }}
+          platforms: ${{ matrix.platform.arch }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p digests/${{ matrix.target.image }}
+          digest="${{ steps.build.outputs.digest }}"
+          touch "digests/${{ matrix.target.image }}/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.target.image }}-${{ matrix.platform.suffix }}
+          path: digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    strategy:
+      matrix:
+        target:
+          - name: aio
+            image: aio
+          - name: backend
+            image: backend
+          - name: app
+            image: app
+          - name: sh_admin
+            image: sh-admin
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: digests
+          pattern: digest-${{ matrix.target.image }}-*
+          merge-multiple: true
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine tag
+        id: tag
+        run: echo "value=${{ inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create manifest and push
+        working-directory: digests/${{ matrix.target.image }}
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.target.image }}"
+
+          # Tagged version
+          docker buildx imagetools create \
+            -t "${IMAGE}:${{ steps.tag.outputs.value }}" \
+            $(printf "${IMAGE}@sha256:%s " *)
+
+          # latest (only on default branch or tag push)
+          docker buildx imagetools create \
+            -t "${IMAGE}:latest" \
+            $(printf "${IMAGE}@sha256:%s " *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.target.image }}:${{ steps.tag.outputs.value }}
