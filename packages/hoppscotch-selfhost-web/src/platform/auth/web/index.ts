@@ -39,6 +39,12 @@ async function signInUserWithMicrosoftFB() {
   }/auth/microsoft`
 }
 
+async function signInUserWithGitlabFB() {
+  window.location.href = `${
+    import.meta.env.VITE_BACKEND_API_URL
+  }/auth/gitlab`
+}
+
 async function getInitialUserDetails() {
   const res = await axios.post<{
     data?: {
@@ -295,6 +301,9 @@ export const def: AuthPlatformDef = {
   },
   async signInUserWithMicrosoft() {
     await signInUserWithMicrosoftFB()
+  },
+  async signInUserWithGitlab() {
+    await signInUserWithGitlabFB()
   },
   async signInWithEmailLink(email: string, url: string) {
     const urlObject = new URL(url)
