@@ -73,6 +73,39 @@ export class SaveOnboardingConfigRequest {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  [InfraConfigEnum.GITLAB_CLIENT_ID]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_CLIENT_SECRET]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_CALLBACK_URL]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_SCOPE]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_ISSUER]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_AUTHORIZATION_URL]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_TOKEN_URL]: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  [InfraConfigEnum.GITLAB_USERINFO_URL]: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   [InfraConfigEnum.MAILER_SMTP_ENABLE]: string;
   @ApiPropertyOptional()
   @IsOptional()
@@ -194,6 +227,31 @@ export class GetOnboardingConfigResponse {
   @ApiProperty()
   @Expose()
   [InfraConfigEnum.MICROSOFT_TENANT]: string;
+
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_CLIENT_ID]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_CLIENT_SECRET]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_CALLBACK_URL]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_SCOPE]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_ISSUER]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_AUTHORIZATION_URL]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_TOKEN_URL]: string;
+  @ApiProperty()
+  @Expose()
+  [InfraConfigEnum.GITLAB_USERINFO_URL]: string;
 
   @ApiProperty()
   @Expose()
