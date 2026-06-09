@@ -328,6 +328,17 @@ export class InfraConfigService implements OnModuleInit, OnModuleDestroy {
           configMap.MICROSOFT_SCOPE &&
           configMap.MICROSOFT_TENANT
         );
+      case AuthProvider.GITLAB:
+        return (
+          configMap.GITLAB_CLIENT_ID &&
+          configMap.GITLAB_CLIENT_SECRET &&
+          configMap.GITLAB_CALLBACK_URL &&
+          configMap.GITLAB_SCOPE &&
+          configMap.GITLAB_ISSUER &&
+          configMap.GITLAB_AUTHORIZATION_URL &&
+          configMap.GITLAB_TOKEN_URL &&
+          configMap.GITLAB_USERINFO_URL
+        );
       case AuthProvider.EMAIL:
         if (configMap.MAILER_SMTP_ENABLE !== 'true') return false;
         if (configMap.MAILER_USE_CUSTOM_CONFIGS === 'true') {
@@ -808,12 +819,20 @@ export class InfraConfigService implements OnModuleInit, OnModuleDestroy {
         case InfraConfigEnum.MICROSOFT_CLIENT_SECRET:
         case InfraConfigEnum.MICROSOFT_SCOPE:
         case InfraConfigEnum.MICROSOFT_TENANT:
+        case InfraConfigEnum.GITLAB_CLIENT_ID:
+        case InfraConfigEnum.GITLAB_CLIENT_SECRET:
+        case InfraConfigEnum.GITLAB_SCOPE:
+        case InfraConfigEnum.GITLAB_ISSUER:
+        case InfraConfigEnum.GITLAB_AUTHORIZATION_URL:
+        case InfraConfigEnum.GITLAB_TOKEN_URL:
+        case InfraConfigEnum.GITLAB_USERINFO_URL:
           if (!value) return fail();
           break;
 
         case InfraConfigEnum.GOOGLE_CALLBACK_URL:
         case InfraConfigEnum.GITHUB_CALLBACK_URL:
         case InfraConfigEnum.MICROSOFT_CALLBACK_URL:
+        case InfraConfigEnum.GITLAB_CALLBACK_URL:
         case InfraConfigEnum.PROXY_APP_URL:
           if (!validateUrl(value)) return fail();
           break;
