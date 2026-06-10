@@ -9,23 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { validateEmail } from 'src/utils';
 import { AUTH_EMAIL_NOT_PROVIDED_BY_OAUTH } from 'src/errors';
+import { OIDCProviderProfile } from 'src/types/AuthUser';
 import { StatelessStateStore } from '../stateless-state-store';
-
-/**
- * passport-openidconnect's `Profile` shape mirrors passport's standard
- * profile, but typings are not exported. We rebuild the minimal subset
- * we touch so downstream `usersService.createUserSSO` (which expects a
- * Profile with `id`, `provider`, `displayName`, `emails[]`, `photos[]`)
- * is satisfied without coupling to internal types.
- */
-type OIDCProfile = {
-  id: string;
-  provider: string;
-  displayName?: string;
-  emails?: { value: string }[];
-  photos?: { value: string }[];
-  _json?: Record<string, unknown>;
-};
 
 @Injectable()
 export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
@@ -69,7 +54,7 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
   async validate(
     req: Request,
     issuer: string,
-    profile: OIDCProfile,
+    profile: OIDCProviderProfile,
     context: {
       idToken: string;
       accessToken: string;
@@ -90,7 +75,7 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
       const createdUser = await this.usersService.createUserSSO(
         accessToken,
         refreshToken,
-        profile as any,
+        profile,
       );
       return createdUser;
     }
@@ -98,7 +83,7 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
     if (!user.value.displayName || !user.value.photoURL) {
       const updatedUser = await this.usersService.updateUserDetails(
         user.value,
-        profile as any,
+        profile,
       );
       if (E.isLeft(updatedUser)) {
         throw new UnauthorizedException(updatedUser.left);
@@ -106,17 +91,14 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
     }
 
     const providerAccountExists =
-      await this.authService.checkIfProviderAccountExists(
-        user.value,
-        profile as any,
-      );
+      await this.authService.checkIfProviderAccountExists(user.value, profile);
 
     if (O.isNone(providerAccountExists))
       await this.usersService.createProviderAccount(
         user.value,
         accessToken,
         refreshToken,
-        profile as any,
+        profile,
       );
 
     return user.value;
