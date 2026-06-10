@@ -64,6 +64,8 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
   ) {
     const { accessToken = '', refreshToken = '' } = context ?? {};
 
+    profile.provider = 'gitlab';
+
     const email = profile?.emails?.[0]?.value;
 
     if (!validateEmail(email))
